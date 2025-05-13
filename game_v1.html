@@ -23,16 +23,13 @@
     <div id="GameOverText"></div>
 
     <script>
-        // Get HTML elements first
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const gameovertext = document.getElementById('GameOverText');
 
-        // Now define objects that might use canvas properties
         // --- World Object ---
         const world = {
             width: 1600,
-            // You might want to make world.height depend on canvas.height or be independent
             height: canvas.height // Or a fixed value like 600 if world height is fixed
         };
 
@@ -40,8 +37,8 @@
         const camera = {
             x: 0,
             y: 0,
-            width: canvas.width,  // Now canvas is defined
-            height: canvas.height // Now canvas is defined
+            width: canvas.width,  
+            height: canvas.height 
         };
 
         // --- Game State ---
@@ -54,7 +51,7 @@
         let displayTimeSeconds = 0; // Initialize it
 
 
-        // --- Player Object (defined globally so it exists for initial draw) ---
+        // --- Player Object ---
         const player = {
             x: 50, y: 50, width: 40, height: 40, color: 'blue',
             speed: 4, dx: 0, velocityY: 0, gravity: 0.6,
@@ -62,20 +59,26 @@
             isGrounded: false
         };
 
-        // --- Platforms (defined globally, can use world.height now) ---
+        // --- Platforms ---
        const platforms = [
                 { x: 100, y: world.height - 70, width: 200, height: 20, color: 'green', goal: false },
-                { x: 350, y: world.height - 150, width: 150, height: 20, color: 'orange', goal: false },
+                {
+                    x: 350, y: world.height - 150, width: 150, height: 20, color: 'DodgerBlue', goal: false,
+                    isMoving: true, // Flag it as a moving platform
+                    moveSpeed: 1,   // How fast it moves
+                    direction: 1,   // 1 for right/down, -1 for left/up
+                    startX: 350,    // Original X, to calculate movement range
+                    moveRangeX: 100 // How far it moves horizontally from its startX before turning
+                },
                 { x: 50,  y: world.height - 250, width: 100, height: 20, color: 'purple', goal: false },
                 { x: 600, y: world.height - 100, width: 180, height: 20, color: 'teal', goal: false},
                 { x: 900, y: world.height - 200, width: 150, height: 20, color: 'pink', goal: false},
                 { x: 1200, y: world.height - 300, width: 250, height: 20, color: 'brown', goal: true}
             ];
-
         // --- Keyboard Input State ---
-        const keysPressed = {}; // Keep this global for simplicity
+        const keysPressed = {};
 
-        if (ctx && gameovertext) { // Make sure these were successfully retrieved
+        if (ctx && gameovertext) {
             console.log("Canvas and context are ready!");
 
             // --- Event Listeners ---
@@ -129,32 +132,72 @@
             function update() {
                 if (gameState !== "playing") return;
 
-                // Horizontal movement
+                 for (let i = 0; i < platforms.length; i++) {
+                    const p = platforms[i];
+                    if (p.isMoving) {
+                        p.x += p.moveSpeed * p.direction;
+                        if (p.direction === 1 && p.x >= p.startX + p.moveRangeX) {
+                            p.direction = -1; p.x = p.startX + p.moveRangeX;
+                        } else if (p.direction === -1 && p.x <= p.startX) {
+                            p.direction = 1;  p.x = p.startX;
+                        }
+                    }
+                }
+
+                // Determine player's intended horizontal movement from input
                 player.dx = 0;
                 if (keysPressed['ArrowLeft'] || keysPressed['a']) player.dx = -player.speed;
                 if (keysPressed['ArrowRight'] || keysPressed['d']) player.dx = player.speed;
-                player.x += player.dx;
-                if (player.x < 0) player.x = 0;
-                if (player.x + player.width > world.width) player.x = world.width - player.width;
+
+                let playerOnMovingPlatform = null;
 
                 // Vertical movement & Collision
                 player.velocityY += player.gravity;
                 let oldPlayerY = player.y;
-                player.y += player.velocityY;
-                player.isGrounded = false;
+                let playerTargetY = player.y + player.velocityY;
 
+                player.isGrounded = false;
                 let landedOnGoal = false;
+
                 for (let i = 0; i < platforms.length; i++) {
                     const platform = platforms[i];
-                    if (checkCollision(player, platform)) {
-                        if (player.velocityY > 0 && (oldPlayerY + player.height) <= platform.y) {
+                    const nextPlayerRect = {
+                        x: player.x, // Use current player.x for vertical collision, horizontal adjusted later
+                        y: playerTargetY,
+                        width: player.width,
+                        height: player.height
+                    };
+
+                    if (checkCollision(nextPlayerRect, platform)) {
+                        if (player.velocityY >= 0 && (oldPlayerY + player.height) <= platform.y) {
                             player.y = platform.y - player.height;
                             player.velocityY = 0;
                             player.isGrounded = true;
                             if (platform.goal === true) landedOnGoal = true;
+                            if (platform.isMoving) {
+                                playerOnMovingPlatform = platform;
+                            }
+                            playerTargetY = player.y; // Update target if collision occurred
+                            break;
                         }
                     }
                 }
+                player.y = playerTargetY;
+
+
+                // --- HORIZONTAL POSITIONING ---
+                // 1. If on a moving platform, first move the player with the platform
+                if (playerOnMovingPlatform) {
+                    player.x += playerOnMovingPlatform.moveSpeed * playerOnMovingPlatform.direction;
+                }
+                // 2. Then, apply the player's own intended movement (dx)
+                player.x += player.dx;
+
+
+                // Keep player within WORLD bounds (horizontal) after all X movements
+                if (player.x < 0) player.x = 0;
+                if (player.x + player.width > world.width) player.x = world.width - player.width;
+
 
                 if (landedOnGoal) { triggerGameOver(true); return; }
 
@@ -171,14 +214,8 @@
 
                 // Update Camera Position
                 camera.x = (player.x + player.width / 2) - canvas.width / 2;
-                // For now, no vertical camera movement, keep camera.y = 0
-                // camera.y = (player.y + player.height / 2) - canvas.height / 2;
-
-                // Clamp camera
                 if (camera.x < 0) camera.x = 0;
-                // if (camera.y < 0) camera.y = 0; // If you add vertical scroll
                 if (camera.x + camera.width > world.width) camera.x = world.width - camera.width;
-                // if (camera.y + camera.height > world.height) camera.y = world.height - camera.height; // If you add vertical scroll
             }
 
             // --- Draw Function ---
