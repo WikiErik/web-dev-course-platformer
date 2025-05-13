@@ -23,9 +23,26 @@
     <div id="GameOverText"></div>
 
     <script>
+        // Get HTML elements first
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const gameovertext = document.getElementById('GameOverText');
+
+        // Now define objects that might use canvas properties
+        // --- World Object ---
+        const world = {
+            width: 1600,
+            // You might want to make world.height depend on canvas.height or be independent
+            height: canvas.height // Or a fixed value like 600 if world height is fixed
+        };
+
+        // --- Camera Object ---
+        const camera = {
+            x: 0,
+            y: 0,
+            width: canvas.width,  // Now canvas is defined
+            height: canvas.height // Now canvas is defined
+        };
 
         // --- Game State ---
         let gameState = "initial"; // "initial", "playing", "gameOver"
@@ -33,6 +50,9 @@
         // --- Timer Variables ---
         let startTime = 0;
         let finalTime = 0;
+        // --- Display Time (global for draw function) ---
+        let displayTimeSeconds = 0; // Initialize it
+
 
         // --- Player Object (defined globally so it exists for initial draw) ---
         const player = {
@@ -42,24 +62,26 @@
             isGrounded: false
         };
 
-        // --- Platforms (defined globally) ---
-        const platforms = [
-            { x: 100, y: canvas.height - 70, width: 200, height: 20, color: 'green', goal: false },
-            { x: 350, y: canvas.height - 150, width: 150, height: 20, color: 'orange', goal: false},
-            { x: 50,  y: canvas.height - 250, width: 100, height: 20, color: 'purple', goal: false },
-            { x: 550, y: canvas.height - 220, width: 200, height: 20, color: 'brown', goal: true}
-        ];
+        // --- Platforms (defined globally, can use world.height now) ---
+       const platforms = [
+                { x: 100, y: world.height - 70, width: 200, height: 20, color: 'green', goal: false },
+                { x: 350, y: world.height - 150, width: 150, height: 20, color: 'orange', goal: false },
+                { x: 50,  y: world.height - 250, width: 100, height: 20, color: 'purple', goal: false },
+                { x: 600, y: world.height - 100, width: 180, height: 20, color: 'teal', goal: false},
+                { x: 900, y: world.height - 200, width: 150, height: 20, color: 'pink', goal: false},
+                { x: 1200, y: world.height - 300, width: 250, height: 20, color: 'brown', goal: true}
+            ];
 
         // --- Keyboard Input State ---
         const keysPressed = {}; // Keep this global for simplicity
 
-        if (ctx && gameovertext) {
+        if (ctx && gameovertext) { // Make sure these were successfully retrieved
             console.log("Canvas and context are ready!");
 
             // --- Event Listeners ---
             window.addEventListener('keydown', function(event) {
                 if (gameState === "initial") {
-                    runGame(); // Start the game on first key press
+                    runGame();
                 } else if (gameState === "playing") {
                     keysPressed[event.key] = true;
                     if ((event.key === 'ArrowUp' || event.key === 'w' || event.key === ' ') && player.isGrounded) {
@@ -67,8 +89,8 @@
                         player.isGrounded = false;
                     }
                 } else if (gameState === "gameOver") {
-                    initializeGame(); // Reset visuals and state
-                    runGame();        // Start a new game
+                    initializeGame();
+                    runGame();
                 }
             });
 
@@ -88,18 +110,19 @@
 
             // --- Game Over Function ---
             function triggerGameOver(cause) {
-                if (gameState !== "playing") return; // Prevent multiple calls
+                if (gameState !== "playing") return;
 
                 gameState = "gameOver";
                 finalTime = (performance.now() - startTime) / 1000;
+                displayTimeSeconds = finalTime; // Update displayTimeSeconds for final draw
 
-                if (cause) { // true = win
+                if (cause) {
                     gameovertext.textContent = `Hai vinto! Tempo: ${finalTime.toFixed(2)}s. Premi un tasto per rigiocare.`;
-                } else { // false = lose
+                } else {
                     gameovertext.textContent = `Hai perso! Tempo: ${finalTime.toFixed(2)}s. Premi un tasto per rigiocare.`;
                 }
                 console.log(`Game Over. Final Time: ${finalTime.toFixed(3)}s`);
-                draw(); // Draw the final game over screen once
+                draw();
             }
 
             // --- Update Function ---
@@ -112,7 +135,7 @@
                 if (keysPressed['ArrowRight'] || keysPressed['d']) player.dx = player.speed;
                 player.x += player.dx;
                 if (player.x < 0) player.x = 0;
-                if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+                if (player.x + player.width > world.width) player.x = world.width - player.width;
 
                 // Vertical movement & Collision
                 player.velocityY += player.gravity;
@@ -133,24 +156,29 @@
                     }
                 }
 
-                if (landedOnGoal) {
-                    triggerGameOver(true); return;
-                }
+                if (landedOnGoal) { triggerGameOver(true); return; }
 
                 let landedOnFloor = false;
-                if (!player.isGrounded && (player.y + player.height) >= canvas.height) {
-                    player.y = canvas.height - player.height;
+                if (!player.isGrounded && (player.y + player.height) >= world.height) {
+                    player.y = world.height - player.height;
                     player.velocityY = 0;
                     player.isGrounded = true;
                     landedOnFloor = true;
                 }
-                if (landedOnFloor) {
-                    triggerGameOver(false); return;
-                }
+                if (landedOnFloor) { triggerGameOver(false); return; }
 
-                if (player.y < 0 && player.velocityY < 0) {
-                    player.y = 0; player.velocityY = 0;
-                }
+                if (player.y < 0 && player.velocityY < 0) { player.y = 0; player.velocityY = 0; }
+
+                // Update Camera Position
+                camera.x = (player.x + player.width / 2) - canvas.width / 2;
+                // For now, no vertical camera movement, keep camera.y = 0
+                // camera.y = (player.y + player.height / 2) - canvas.height / 2;
+
+                // Clamp camera
+                if (camera.x < 0) camera.x = 0;
+                // if (camera.y < 0) camera.y = 0; // If you add vertical scroll
+                if (camera.x + camera.width > world.width) camera.x = world.width - camera.width;
+                // if (camera.y + camera.height > world.height) camera.y = world.height - camera.height; // If you add vertical scroll
             }
 
             // --- Draw Function ---
@@ -159,17 +187,27 @@
 
                 for (let i = 0; i < platforms.length; i++) {
                     const p = platforms[i];
-                    ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.width, p.height);
+                    if (p.x + p.width > camera.x && p.x < camera.x + camera.width &&
+                        p.y + p.height > camera.y && p.y < camera.y + camera.height) {
+                        ctx.fillStyle = p.color;
+                        // For horizontal scrolling only, camera.y is 0
+                        ctx.fillRect(p.x - camera.x, p.y - 0, p.width, p.height);
+                    }
                 }
-                ctx.fillStyle = player.color; ctx.fillRect(player.x, player.y, player.width, player.height);
 
-                let displayTimeSeconds = 0;
+                ctx.fillStyle = player.color;
+                // For horizontal scrolling only, camera.y is 0
+                ctx.fillRect(player.x - camera.x, player.y - 0, player.width, player.height);
+
+                // Update displayTimeSeconds for drawing
                 if (gameState === "playing") {
                     displayTimeSeconds = (performance.now() - startTime) / 1000;
                 } else if (gameState === "gameOver") {
-                    displayTimeSeconds = finalTime;
+                    // displayTimeSeconds is already set by triggerGameOver
+                } else { // initial state
+                    displayTimeSeconds = 0;
                 }
-                // For "initial" state, displayTimeSeconds remains 0
+
 
                 ctx.font = "20px Arial"; ctx.fillStyle = "black";
                 ctx.textAlign = "left"; ctx.textBaseline = "top";
@@ -184,7 +222,7 @@
 
             // --- Animation Loop ---
             function gameLoop() {
-                if (gameState !== "playing") return; // Only loop if playing
+                if (gameState !== "playing") return;
 
                 update();
                 draw();
@@ -193,33 +231,34 @@
 
             // --- Game Setup and Control Functions ---
             function initializeGame() {
-                // Reset player state
-                player.x = 50; player.y = 50; // Initial position for drawing
+                player.x = 50; player.y = 50;
                 player.velocityY = 0; player.dx = 0;
                 player.isGrounded = false;
 
-                // Reset game state variables
                 finalTime = 0;
-                for (const key in keysPressed) delete keysPressed[key]; // Clear pressed keys
+                displayTimeSeconds = 0; // Reset display time too
+                for (const key in keysPressed) delete keysPressed[key];
 
-                gameovertext.textContent = ""; // Clear game over message
-                // gameState will be set by the calling context (e.g., to "initial" or directly to "playing")
+                gameovertext.textContent = "";
+                // Reset camera for a fresh start
+                camera.x = 0;
+                camera.y = 0;
             }
 
             function runGame() {
-                if (gameState === "playing") return; // Prevent starting if already playing
+                if (gameState === "playing") return;
 
-                initializeGame(); // Ensure a clean state
+                initializeGame();
                 gameState = "playing";
                 startTime = performance.now();
                 console.log("Game Started!");
-                gameLoop(); // Start the animation loop
+                gameLoop();
             }
 
             // --- Initial Page Load ---
-            initializeGame(); // Setup initial player pos etc.
-            gameState = "initial"; // Set state for initial screen
-            draw(); // Draw the initial "Press any key to start" screen
+            initializeGame();
+            gameState = "initial";
+            draw(); // Draw the initial screen
 
         } else {
             if (!ctx) console.error("Failed to get 2D context.");
