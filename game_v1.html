@@ -50,6 +50,8 @@
         // --- Display Time (global for draw function) ---
         let displayTimeSeconds = 0; // Initialize it
 
+        let ignoreInputUntil = 0;
+
 
         // --- Player Object ---
         const player = {
@@ -85,7 +87,7 @@
             window.addEventListener('keydown', function(event) {
                 if (gameState === "initial") {
                     runGame();
-                } else if (gameState === "playing") {
+                } else if (gameState === "playing" && ignoreInputUntil < performance.now()) {
                     keysPressed[event.key] = true;
                     if ((event.key === 'ArrowUp' || event.key === 'w' || event.key === ' ') && player.isGrounded) {
                         player.velocityY = -player.jumpStrength;
@@ -284,6 +286,8 @@
 
             function runGame() {
                 if (gameState === "playing") return;
+
+                ignoreInputUntil = performance.now() + 100;
 
                 initializeGame();
                 gameState = "playing";
