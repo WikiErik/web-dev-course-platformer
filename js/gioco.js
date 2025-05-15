@@ -56,7 +56,7 @@ const platforms = [
 // Keyboard Input State
 const keysPressed = {};
 
-if (ctx && gameovertext && ) {
+if (ctx && gameovertext) {
     console.log("Canvas and context are ready!");
 
     // Event Listeners

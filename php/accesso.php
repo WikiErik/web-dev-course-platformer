@@ -6,11 +6,11 @@
 
 <?php require 'head.php'; ?>
     
-    <script src="./../JS/controlloClient.js"></script>
+    <script src="./../js/controlloClient.js"></script>
 </head>
 <body>
     <header id="titolo">
-        <h1>Le avventure di quadrato blu</h1>
+        <h1>Le avventure di Quadrato Blu</h1>
     </header>
     
     <div class="boxInfo">
