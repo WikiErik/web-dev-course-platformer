@@ -3,13 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platform Game</title>
+    <title>Miglior gioco della storia</title>
     <link rel="stylesheet" href="css/gioco.css">
 </head>
 <body>
+    <div id="levelSelection" style="margin-bottom: 10px; text-align: center;">
+        <h2>Scegli un Livello</h2>
+        <button data-level="level1">Livello 1: L'inizio di tutto</button>
+        <button data-level="level2">Livello 2: Quando il gioco si fa duro, i quadrati giocano</button>
+    </div>
 
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div id="GameOverText"></div>
+
+    <script src="js/livelli/datiLivello1.js"></script>
+    <script src="js/livelli/datiLivello2.js"></script>
 
     <script src="js/gioco.js"></script>
 </body>

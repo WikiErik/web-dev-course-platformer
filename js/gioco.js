@@ -17,7 +17,11 @@ const camera = {
 };
 
 // Game State
-let gameState = "initial"; // "initial", "playing", "gameOver"
+let gameState = "menu"; // "menu" "initial", "playing", "gameOver"
+let currentLevel = null;
+let currentLevelData = null;
+
+const leveSelectionDiv = document.getElementById("levelSelection");
 
 // Timer Variables
 let startTime = 0;
@@ -52,7 +56,7 @@ const platforms = [
 // Keyboard Input State
 const keysPressed = {};
 
-if (ctx && gameovertext) {
+if (ctx && gameovertext && ) {
     console.log("Canvas and context are ready!");
 
     // Event Listeners
