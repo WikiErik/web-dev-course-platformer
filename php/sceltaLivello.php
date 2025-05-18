@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 require_once "connessioneDB.php";
 
 // Logica per determinare se il Livello 2 è sbloccato
@@ -72,11 +74,11 @@ mysqli_close($connessione);
     <div class="boxInfo level-selection-container">
         <h2>Scegli un Livello</h2>
         <p>Seleziona il livello che vuoi giocare.</p>
-        <a href="game_page.php?level=1" class="level-button" id="level1Btn">
+        <a href="partita.php?level=1" class="level-button" id="level1Btn">
             Livello 1: L'Inizio
         </a>
         <?php if ($is_level2_unlocked): ?>
-            <a href="game_page.php?level=2" class="level-button" id="level2Btn">
+            <a href="partita.php?level=2" class="level-button" id="level2Btn">
                 Livello 2: Sfide Crescenti
             </a>
         <?php else: ?>

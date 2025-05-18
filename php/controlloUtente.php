@@ -36,7 +36,6 @@ if (!preg_match('/^[a-z\d]{4,30}$/i', $username) || !preg_match('/^.{4,256}$/', 
 if (isset($_POST["accesso"]) && !isset($_POST["registrazione"])) {
 
     // Prepara la query SQL per selezionare l'ID e l'hash della password dell'utente.
-    // Si usa 'users' come nome tabella e 'password_hash' per la colonna della password (adattare se necessario).
     $sql = "SELECT id, password_hash FROM users WHERE username = ?";
     $stmt = mysqli_prepare($connessione, $sql);
 
@@ -86,7 +85,7 @@ if (isset($_POST["accesso"]) && !isset($_POST["registrazione"])) {
         // Nessun utente trovato con quell'username.
         mysqli_stmt_close($stmt);
         mysqli_close($connessione);
-        mostraMessaggio('Utente non registrato o password errata.'); // Messaggio più generico
+        mostraMessaggio('Utente non registrato o password errata.');
     }
 }
 //  CASO 2: RICHIESTA DI REGISTRAZIONE 

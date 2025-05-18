@@ -31,11 +31,8 @@ body {
 	background-color: #0056b3;
 }
 
-.boxInfo button,
-.boxInfo input[type="text"],
-.boxInfo input[type="password"],
 .boxInfo input[type="submit"],
-button {
+.boxInfo button {
 	display: block;
 	margin: 10px auto;
 	padding: 10px 20px;
@@ -43,6 +40,18 @@ button {
 	border: none;
 	border-radius: 5px;
 	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+.boxInfo input[type="text"],
+.boxInfo input[type="password"],
+button {
+	display: block;
+	margin: 10px auto;
+	padding: 10px 20px;
+	font-size: 16px;
+	border: none;
+	border-radius: 5px;
+	cursor: text;
 	transition: background-color 0.3s ease;
 }
 

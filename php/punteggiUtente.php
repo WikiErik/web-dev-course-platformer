@@ -56,7 +56,6 @@ if ($user_id_visualizzato !== null) {
 }
 
 // Controlla se l'utente loggato è il proprietario del profilo visualizzato
-// Assumendo che $_SESSION['username'] contenga l'username dell'utente loggato
 $proprietario = (isset($_SESSION['username']) && $_SESSION['username'] === $username_visualizzato);
 
 mysqli_close($connessione);
@@ -120,9 +119,9 @@ mysqli_close($connessione);
                 <p>Nessun punteggio trovato per questo utente.</p>
             <?php endif; ?>
              <p style="text-align: center; margin-top: 20px;">
-                <a href="classifica.php" class="level-button" style="display: inline-block; text-decoration:none; background-color: #007BFF; color:white; padding: 10px 20px; border-radius:5px;">Torna alle Classifiche</a>
+                <a href="classifiche.php" class="level-button" style="display: inline-block; text-decoration:none; background-color: #007BFF; color:white; padding: 10px 20px; border-radius:5px;">Torna alle Classifiche</a>
                 <?php if (isset($_SESSION['username'])): // Mostra link al menu solo se loggato ?>
-                <a href="menu.php" class="level-button" style="display: inline-block; text-decoration:none; margin-left:10px; background-color: #5cb85c; color:white; padding: 10px 20px; border-radius:5px;">Menu Principale</a>
+                <a href="home.php" class="level-button" style="display: inline-block; text-decoration:none; margin-left:10px; background-color: #5cb85c; color:white; padding: 10px 20px; border-radius:5px;">Menu Principale</a>
                 <?php endif; ?>
             </p>
         </div>

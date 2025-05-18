@@ -4,14 +4,14 @@ header('Content-Type: application/json'); // Imposta il content type per la risp
 
 require_once "connessioneDB.php";
 
-// --- Controlla se l'utente è loggato e recupera user_id ---
-if (!isset($_SESSION['user_id'])) { // Assumendo che user_id sia memorizzato in sessione
+// Controlla se l'utente è loggato e recupera user_id
+if (!isset($_SESSION['user_id'])) {
     echo json_encode(['status' => 'error', 'message' => 'Utente non autenticato. Effettua il login.']);
     exit();
 }
 $user_id = $_SESSION['user_id'];
 
-// --- Decodifica i dati JSON inviati dal client ---
+// Decodifica i dati JSON inviati dal client
 $input_data = json_decode(file_get_contents("php://input"));
 
 // Controlla se i dati necessari sono presenti
@@ -26,7 +26,7 @@ $time_seconds = filter_var($input_data->timeSeconds, FILTER_VALIDATE_FLOAT); // 
 $coins_collected = filter_var($input_data->coinsCollected, FILTER_VALIDATE_INT);
 $submission_date = date('Y-m-d H:i:s'); // Data e ora correnti
 
-// Ulteriori validazioni (es. level_id esiste, tempo e monete sono non negativi)
+// Ulteriori validazioni
 if ($level_id === false || $level_id <= 0) {
     echo json_encode(['status' => 'error', 'message' => 'ID livello non valido.']);
     exit();
@@ -44,7 +44,7 @@ if ($coins_collected === false || $coins_collected < 0) {
 mysqli_begin_transaction($connessione);
 
 try {
-    // --- 1. Inserisce il punteggio nella tabella 'scores' ---
+    // 1. Inserisce il punteggio nella tabella 'scores'
     $sql_insert_score = "INSERT INTO scores (user_id, level_id, time_seconds, coins_collected, submission_date) 
                          VALUES (?, ?, ?, ?, ?)";
     $stmt_score = mysqli_prepare($connessione, $sql_insert_score);
@@ -61,7 +61,7 @@ try {
     }
     mysqli_stmt_close($stmt_score);
 
-    // --- 2. Aggiorna la tabella 'user_progress' (se il livello è stato completato) ---
+    // 2. Aggiorna la tabella 'user_progress' (se il livello è stato completato)
     // Usiamo INSERT IGNORE per evitare errori se l'utente ha già completato questo livello.
     $sql_update_progress = "INSERT IGNORE INTO user_progress (user_id, level_id_completed, first_completion_date)
                             VALUES (?, ?, ?)";
